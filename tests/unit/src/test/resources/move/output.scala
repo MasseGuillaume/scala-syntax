@@ -1,0 +1,1 @@
+class A{val y = 1;val x = 1}
