@@ -22,11 +22,9 @@ trait RefactorStats extends Refactor {
 }
 
 object RefactorSuite extends TestSuite {
-  def test(refactor: Refactor): Unit = {
-    val path = refactor.name
-    val input = slurpResource(s"/$path/input.scala").parse[Source].get
-    val obtained = TreePrinter.print(refactor(input)).render(100)
-    val expected = slurpResource(s"/$path/output.scala")
+  def test(refactor: Refactor, input: String, expected: String): Unit = {
+    
+    val obtained = TreePrinter.print(refactor(input.parse[Source].get)).render(100)
     println("== Obtained ==")
     println(obtained)
     println()
@@ -34,6 +32,13 @@ object RefactorSuite extends TestSuite {
     println(expected)
     println()
     // assert(obtained == expected)
+  }
+
+  def test(refactor: Refactor): Unit = {
+    val path = refactor.name
+    val input = slurpResource(s"/$path/input.scala")
+    val expected = slurpResource(s"/$path/output.scala")
+    test(refactor, input, expected)
   }
 
   val tests = Tests{
@@ -46,7 +51,11 @@ object RefactorSuite extends TestSuite {
     }
 
     'move {
-      test(Move)
+      test(
+        Move,
+        "class A{val x = 1;val y = 1}",
+        "class A{val y = 1;val x = 1}"
+      )
     }
 
 
@@ -59,7 +68,11 @@ object RefactorSuite extends TestSuite {
     }
 
     'remove {
-      test(Remove)
+      test(
+        Remove,
+        "class A{def foo(): Unit = ()}",
+        "class A{def foo() = ()}"
+      )
     }
 
     object Add extends RefactorStats {
@@ -71,7 +84,11 @@ object RefactorSuite extends TestSuite {
     }
 
     'add {
-      test(Add)
+      test(
+        Add,
+        "class A{def foo() = ()}",
+        "class A{def foo(): Unit = ()}"
+      )
     }
 
     object Sam extends Refactor {
@@ -124,7 +141,26 @@ object RefactorSuite extends TestSuite {
     }
 
     'sam {
-      test(Sam)
+      test(
+        Sam,
+        """|object A {
+           |  fun(new WithParams() {
+           |    def doit(a: Int, b: Int): Int = {
+           |      // comments
+           |      a + b
+           |    }
+           |  })
+           |}""".stripMargin,
+
+        """|object A {
+           |  fun(
+           |    (a, b) => {
+           |      // comments
+           |      a + b
+           |    }
+           |  )
+           |}""".stripMargin
+      )
     }
   }
 
