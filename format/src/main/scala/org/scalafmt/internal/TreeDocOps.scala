@@ -56,6 +56,9 @@ object TreeDocOps {
     }
     def wrap0(tree: Tree, doc: Doc, side: Side = Side.Left): Doc = {
       val rightGroup = TreeSyntacticGroup(tree)
+      wrap1(rightGroup, doc, side)
+    }
+    def wrap1(rightGroup: SyntacticGroup, doc: Doc, side: Side = Side.Left): Doc = {
       if (TreeOps.groupNeedsParenthesis(leftGroup, rightGroup, side))
         wrapParens(doc)
       else doc
@@ -81,7 +84,7 @@ object TreeDocOps {
           (accum :+ f.params, f.body)
       }
 
-    def dFunction(f: Term.Function): Doc = {
+    def dFunction(f: Term.Function, group: SyntacticGroup): Doc = {
       val (paramss, body) = getParamss(f)
       val dbody = body match {
         case Term.Block(stats) => dStats(stats)
@@ -89,7 +92,7 @@ object TreeDocOps {
       }
       val dparamss = paramss.foldLeft(empty) {
         case (accum, params) =>
-          accum + line + dParams(params, forceParens = false) + space + `=>`
+          accum + line + dParams(params, group, forceParenthesis = false) + space + `=>`
       }
       val result = `{` +
         (dparamss.nested(2).grouped + line + dbody).nested(2).grouped +
@@ -102,9 +105,9 @@ object TreeDocOps {
         case (arg: Term.PartialFunction) :: Nil =>
           Some(print(arg))
         case (arg @ Term.Function(_, Term.Block(_ :: _ :: _))) :: Nil =>
-          Some(dFunction(arg))
+          Some(dFunction(arg, Expr))
         case (Term.Block((f: Term.Function) :: Nil)) :: Nil =>
-          Some(dFunction(f))
+          Some(dFunction(f, Expr))
         case _ =>
           None
       }
@@ -159,13 +162,18 @@ object TreeDocOps {
     SimpleExpr.wrap(lhs) + sep + rhs
   }
 
-  def dAscription(lhs: Tree, rhs: Tree): Doc = {
-    dAscription(lhs, print(rhs))
+  def dAscription(lhs: Tree, rhs: Tree, group: SyntacticGroup): Doc = {
+    dAscription(lhs, print(rhs), group)
   }
 
-  def dAscription(lhs: Tree, rhs: Doc): Doc = {
+  def dAscription(lhs: Tree, rhs: Doc, group: SyntacticGroup): Doc = {
     val dlhs = dName(lhs)
-    Ascription.wrap0(lhs, dlhs) + typedColon(dlhs) + space + rhs
+    val left = print(lhs)
+      // if(isWraped) Ascription.wrap(lhs)
+      // else print(lhs)
+
+    // Ascription.wrap1(group, left + typedColon(dlhs) + space + rhs)
+    left + typedColon(dlhs) + space + rhs
   }
 
   def dBlock(stats: List[Tree]): Doc =
@@ -334,17 +342,17 @@ object TreeDocOps {
     print(prefix) + dquote + dhead + sparts + dquote
   }
 
-  def dParams(params: List[Term.Param], forceParens: Boolean): Doc =
+  def dParams(params: List[Term.Param], group: SyntacticGroup, forceParenthesis: Boolean): Doc = {
     params match {
-      case param :: Nil =>
-        val dparam = print(param)
-        param.decltpe match {
-          case Some(tpe) if forceParens || needsParens(tpe) =>
-            `(` + dparam + `)`
-          case _ => dparam
+      case param :: Nil => 
+        if (forceParenthesis) wrapParens(print(param))
+        else {
+          println("yo")
+          group.wrap(param)
         }
       case _ => dApplyParen(empty, params)
     }
+  }
 
   def dPat(pat: Tree): Doc =
     print(mkPat(pat))

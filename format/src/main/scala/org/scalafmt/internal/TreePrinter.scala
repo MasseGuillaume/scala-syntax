@@ -40,6 +40,7 @@ import scala.meta.internal.prettyprinters.SingleQuotes
 object TreePrinter {
   import TreeDocOps._
   def print(tree: Tree): Doc = {
+    println(tree.structure)
     val result = tree match {
       case t: Name =>
         t match {
@@ -128,10 +129,11 @@ object TreePrinter {
             val dparams = t.params match {
               case Nil => `(` + `)`
               case param :: Nil if !param.is[Type.Tuple] =>
-                AnyInfixTyp.wrap(param)
-              case params => dApplyParen(empty, params)
+                print(param)
+              case params => 
+                dApplyParen(empty, params)
             }
-            dparams + space + `=>` + space + Typ.wrap(t.res)
+            dparams + space + `=>` + space + print(t.res)
           case t: Type.Tuple => dApplyParen(empty, t.args)
           case t: Type.Project => SimpleTyp.wrap(t.qual) + `#` + print(t.name)
           case t: Type.Singleton =>
@@ -203,7 +205,7 @@ object TreePrinter {
             dBlock(t.cases)
           case t: Term.Function =>
             val dbody = (line + print(t.body)).nested(2).grouped
-            dParams(t.params, forceParens = true) + space + `=>` + dbody
+            dParams(t.params, Expr, forceParenthesis = true) + space + `=>` + dbody
           case t: Term.Tuple =>
             dApplyParen(empty, t.args)
           case t: Term.Match =>
@@ -242,11 +244,11 @@ object TreePrinter {
           case t: Term.Throw =>
             `throw` + space + print(t.expr)
           case t: Term.Annotate =>
-            dAscription(t.expr, spaceSeparated(t.annots.map(print)))
+            dAscription(t.expr, spaceSeparated(t.annots.map(print)), SimplePattern)
           case t: Term.NewAnonymous =>
             `new` + print(t.templ)
           case t: Term.Ascribe =>
-            dAscription(t.expr, t.tpe)
+            dAscription(t.expr, t.tpe, Ascription)
           case t: Term.Eta =>
             print(t.expr) + space + `wildcard`
           case t: Term.ApplyUnary =>
@@ -313,7 +315,7 @@ object TreePrinter {
           dcbounds
       case t: Term.Param =>
         val ddecltpe =
-          t.decltpe.fold(dName(t.name))(tpe => dAscription(t.name, tpe))
+          t.decltpe.fold(dName(t.name))(tpe => dAscription(t.name, tpe, Pattern1))
         val ddefault =
           t.default.fold(empty)(default => `=` + space + print(default))
         spaceSeparated(
