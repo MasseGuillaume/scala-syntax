@@ -1,28 +1,7 @@
 package org.scalafmt.internal
 
-import scala.meta.Case
-import scala.meta.Ctor
-import scala.meta.Decl
-import scala.meta.Defn
-import scala.meta.Enumerator
-import scala.meta.Import
-import scala.meta.Importee
-import scala.meta.Importer
-import scala.meta.Init
-import scala.meta.Lit
-import scala.meta.Mod
-import scala.meta.Name
-import scala.meta.Pat
-import scala.meta.Pkg
-import scala.meta.Self
-import scala.meta.Source
-import scala.meta.Template
-import scala.meta.Term
-import scala.meta.Tree
-import scala.meta.Type
-import scala.meta.internal.format.CustomTrees.PatName
-import scala.meta.internal.prettyprinters.TripleQuotes
 import org.scalafmt.internal.ScalaToken._
+
 import org.typelevel.paiges.Doc
 import org.typelevel.paiges.Doc.comma
 import org.typelevel.paiges.Doc.empty
@@ -30,12 +9,19 @@ import org.typelevel.paiges.Doc.intercalate
 import org.typelevel.paiges.Doc.line
 import org.typelevel.paiges.Doc.space
 import org.typelevel.paiges.Doc.text
-import org.scalafmt.internal.ScalaToken._
+
+import scala.meta.{
+  Case,Ctor,Decl,Defn,Enumerator,Import,
+  Importee,Importer,Init,Lit,Mod,Name,Pat,
+  Pkg,Self,Source,Template,Term,Tree,Type
+}
+import scala.meta.internal.fmt.SyntacticGroup.Pat._
 import scala.meta.internal.fmt.SyntacticGroup.Term._
 import scala.meta.internal.fmt.SyntacticGroup.Type._
-import scala.meta.internal.fmt.SyntacticGroup.Pat._
 import scala.meta.internal.format.Comments
+import scala.meta.internal.format.CustomTrees.PatName
 import scala.meta.internal.prettyprinters.SingleQuotes
+import scala.meta.internal.prettyprinters.TripleQuotes
 
 object TreePrinter {
   import TreeDocOps._
@@ -250,7 +236,8 @@ object TreePrinter {
           case t: Term.Eta =>
             print(t.expr) + space + `wildcard`
           case t: Term.ApplyUnary =>
-            print(t.op) + SimpleExpr.wrap(t.arg)
+            val group = TreeSyntacticGroup(t)
+            print(t.op) + group.wrap(t.arg)
           case t: Term.Apply =>
             val dfun = dPath(t.fun, empty, empty)
             t.args match {

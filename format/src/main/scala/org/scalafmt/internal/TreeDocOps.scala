@@ -11,7 +11,6 @@ import scala.meta.Self
 import scala.meta.Type
 import scala.meta.Term
 import scala.meta.Tree
-import scala.meta.internal.fmt.SyntacticGroup
 import scala.meta.internal.prettyprinters.DoubleQuotes
 import scala.meta.internal.prettyprinters.QuoteStyle
 import scala.meta.internal.prettyprinters.TripleQuotes
@@ -46,19 +45,6 @@ object TreeDocOps {
 
   def printTree(root: Tree, options: Options): Doc = {
     print(root)
-  }
-
-  implicit class XtensionSyntacticGroup(val leftGroup: SyntacticGroup)
-      extends AnyVal {
-    def wrap(tree: Tree, side: Side = Side.Left): Doc = {
-      wrap0(tree, print(tree), side)
-    }
-    def wrap0(tree: Tree, doc: Doc, side: Side = Side.Left): Doc = {
-      val rightGroup = TreeSyntacticGroup(tree)
-      if (TreeOps.groupNeedsParenthesis(leftGroup, rightGroup, side))
-        wrapParens(doc)
-      else doc
-    }
   }
 
   def wrapParens(doc: Doc): Doc = `(` + doc + `)`
