@@ -60,18 +60,39 @@ final case class AssociatedTrivias(
   }
 
   def wrap(tree: Tree, token: => Token, doc: Doc): Doc = {
-    if (tree.hasTokens) wrap(leadings(token), doc, trailings(token))
-    else doc
-  }
-
-  def wrapHead(tree: Tree, doc: Doc): Doc = {
-    if (tree.hasTokens) {
-      val tokens =
-        tree.tokens.filterNot(t => t.is[Token.BOF] || t.is[Token.EOF])
-      val token = tokens.head
-      wrap(tree, token, doc)
+    if(tree.hasTokens) {
+      wrap(leadings(token), doc, trailings(token))
     } else doc
   }
+
+  def wrap(tree: Tree, doc: Doc): Doc = {
+    if(tree.hasTokens) {
+      val tokens = tree.tokens.filterNot(_.is[Trivia])
+      assert(tokens.size == 1, s"expected one token, got ${tree.tokens.structure}, filtered: ${tokens.map(_.structure)}")
+      val token = tokens.head
+      wrap(leadings(token), doc, trailings(token))
+    } else doc
+  }
+
+  def wrapTrailing(tree: Tree, doc: Doc): Doc =
+    if(tree.hasTokens) {
+      val tokens = tree.tokens.filterNot(_.is[Trivia])
+      wrap(None, doc, trailings(tokens.last))
+    } else doc
+
+  // def wrap(tree: Tree, firstToken: => Token, lastToken: => Token, doc: Doc): Doc = {
+  //   if (tree.hasTokens) wrap(leadings(firstToken), doc, trailings(lastToken))
+  //   else doc
+  // }
+
+  // def wrap(tree: Tree, doc: Doc): Doc = {
+  //   if (tree.hasTokens) {
+  //     val tokens = tree.tokens.filterNot(_.is[Trivia])
+  //     val firstToken = tokens.head
+  //     val lastToken = tokens.last
+  //     wrap(tree, firstToken, lastToken, doc)
+  //   } else doc
+  // }
 
   private def pretty(token: Token): String = {
     if (token.is[Token.BOF]) {

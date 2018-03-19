@@ -1,34 +1,49 @@
 package org.scalafmt.tests
 
 object CommentsSuite extends BaseScalaPrinterTest {
-  check(
-    """|/* java
-       | * doc
-       | */
-       |class A // trailing""".stripMargin
-  )
-  check("class A // trailing")
-  check(
-    """|{
-       |  a & // trailing
-       |   b
-       |}""".stripMargin
-  )
-  check("{ A/*C*/(1) }")
-  check(
-    """|(b // c
-       | & c)""".stripMargin
-  )
-  checkSource(
-    """|// test
-       |
-       |package A""".stripMargin
-  )
-  checkSource(
-    """|// c1
-       |package A""".stripMargin
-  )
-  check("/* C */ implicit class A")
-  checkSource("/* C */ import a.b")
-  check("/* C */ trait A")
+  // check(
+  //   """|/* L1
+  //      | * L2
+  //      | */
+  //      |class A // T""".stripMargin
+  // )
+  // check("class A // T")
+  // check(
+  //   """|{
+  //      |  a & // T
+  //      |   b
+  //      |}""".stripMargin
+  // )
+  // check("{ A/* T */(1) }")
+  // check(
+  //   """|(b // T
+  //      | & c)""".stripMargin
+  // )
+  // checkSource(
+  //   """|// L
+  //      |
+  //      |package A""".stripMargin
+  // )
+  // checkSource(
+  //   """|// L
+  //      |package A""".stripMargin
+  // )
+  // check("/* C */ implicit class A")
+
+  // checkSource("/* L */ import a.b")
+  // checkSource("import a.b // T")
+
+  // check("/* L */ trait A")
+
+  // check("f() // T")
+  // check("/* L */ f()")
+
+  check("/* L */ @a.b def f")
+  check("""|@a.b // T
+           |def f""".stripMargin)
+  
+  // check("/* L */ private[z] class A")
+  // // check("private[z] /* T */ class A")
+  // check("/* L */ protected[z] class A")
+  // // check("protected[z] /* T */ class A")
 }
