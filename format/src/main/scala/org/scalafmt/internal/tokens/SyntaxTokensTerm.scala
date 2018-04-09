@@ -160,6 +160,16 @@ object SyntaxTokensTerm {
         case _ => tree.findAfter[Dot](_.qual)
       }
     }
+
+    def `.`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensDot.get, S.`.`)
+    }
+
+    def tokensThis: KwThis = tree.findAfter[KwThis](_.qual).get
+
+    def `this`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensThis, S.`this`)
+    }
   }
 
   implicit class XtensionTermThrowSyntax(private val tree: Throw)

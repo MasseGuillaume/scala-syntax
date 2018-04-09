@@ -165,8 +165,8 @@ class TreePrinter private ()(implicit val trivia: AssociatedTrivias)
         tree match {
           case t: Term.This =>
             t.qual match {
-              case _: Name.Anonymous => `this`
-              case _ => print(t.qual) + `.` + `this`
+              case _: Name.Anonymous => t.`this`
+              case _ => print(t.qual) + t.`.` + t.`this`
             }
           case t: Term.Super =>
             val dthisp = t.thisp match {

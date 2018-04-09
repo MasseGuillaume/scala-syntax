@@ -32,6 +32,9 @@ object CommentsSuite extends BaseScalaPrinterTest {
   checkSource("/* L */ package A")        // Pkg
   checkSource("/* L */ import a.b")       // Import
 
+  // meta.Term
+  check("a/* L */./* T *//* L */this/* T */") // Term.This
+
   // meta.Mod
   // TODO: trailing
   check("/* L */ @tailrec def f = 1")       // Mod.Annotation
@@ -49,7 +52,6 @@ object CommentsSuite extends BaseScalaPrinterTest {
   // TODO check("class A[/* L */- T]")      // Mod.Contravariant
   // TODO check("class A(/* L */val b: B)") // Mod.ValParam
   // TODO check("class A(/* L */var b: B)") // Mod.VarParam
-
 
   // == Advanced ==
 
