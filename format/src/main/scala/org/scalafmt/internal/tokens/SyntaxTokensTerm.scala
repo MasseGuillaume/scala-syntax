@@ -8,6 +8,7 @@ import scala.meta._
 import scala.meta.tokens.Token._
 
 import org.typelevel.paiges.Doc
+import org.typelevel.paiges.Doc.empty
 
 object SyntaxTokensTerm {
   import Term._
@@ -21,6 +22,107 @@ object SyntaxTokensTerm {
   implicit class XtensionTermAscribeSyntax(private val tree: Ascribe)
       extends AnyVal {
     def tokensColon: Colon = tree.findAfter[Colon](_.expr).get
+  }
+
+  implicit class XtensionTermApplySyntax(private val tree: Apply)
+      extends AnyVal {
+    def `(`(implicit trivia: AssociatedTrivias): Doc = {
+      tokensLeftParen.map(lp => trivia.wrap(tree, lp, S.`(`)).getOrElse(empty)
+    }
+    def tokensLeftParen: Option[LeftParen] =
+      if (tree.args.nonEmpty) tree.findBetween[LeftParen](_.fun, _.args.head)
+      else tree.findAfter[LeftParen](_.fun)
+
+    def `)`(implicit trivia: AssociatedTrivias): Doc = {
+      tokensRightParen.map(rp => trivia.wrap(tree, rp, S.`)`)).getOrElse(empty)
+    }
+    def tokensRightParen: Option[RightParen] =
+      if (tree.args.nonEmpty) tree.findAfter[RightParen](_.args.last)
+      else tree.findAfter[RightParen](_.fun)
+    def tokensLeftBrace: Option[LeftBrace] = {
+      tree.args match {
+        case List(b: Block) => Some(b.find[LeftBrace].get)
+        case _ => None
+      }
+    }
+    def `{`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensLeftBrace.get, S.`{`)
+    }
+    def tokensRightBrace: Option[RightBrace] = {
+      tree.args match {
+        case List(b: Block) => 
+          if(b.stats.nonEmpty) Some(b.findAfter[RightBrace](_.stats.last).get)
+          else Some(b.find[RightBrace].get)
+        case _ => None
+      }
+    }
+    def `}`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensRightBrace.get, S.`}`)
+    }
+  }
+
+  implicit class XtensionTermApplyInfixSyntax(private val tree: ApplyInfix)
+      extends AnyVal {
+    def `(`(implicit trivia: AssociatedTrivias): Doc = {
+      tokensLeftParen.map(lp => trivia.wrap(tree, lp, S.`(`)).getOrElse(empty)
+    }
+
+    // given: a op (f)
+    // args.head.token
+    // obtained: (f)
+    // expected: f
+    // given: a op (b, c)
+    // is correct
+    // https://github.com/scalameta/scalameta/issues/1083#issuecomment-374530497
+    def tokensLeftParen: Option[LeftParen] = {
+      tree.args match {
+        case List(name: Term.Name) => 
+          name.find[LeftParen]
+        case _ :: _ =>
+          // x f (g(y)) // T
+          val tt = tree.after(_.op, tree.tokens).get
+          println(tt)
+          println(tree.args.head.tokens)
+          println(tree.before(_.args.head, tt))
+
+
+          tree.findBetween[LeftParen](_.op, _.args.head)
+        case _ => 
+          println("3")
+          tree.findAfter[LeftParen](_.op)
+      }
+    }
+
+    def `)`(implicit trivia: AssociatedTrivias): Doc = {
+      tokensRightParen.map(rp => trivia.wrap(tree, rp, S.`)`)).getOrElse(empty)
+    }
+    def tokensRightParen: Option[RightParen] =
+      tree.args match {
+        case List(name: Term.Name) => name.findLast[RightParen]
+        case _ :: _ => tree.findAfter[RightParen](_.args.last)
+        case _ => tree.findAfter[RightParen](_.op)
+      }
+
+    def tokensLeftBrace: Option[LeftBrace] = {
+      tree.args match {
+        case List(b: Block) => Some(b.find[LeftBrace].get)
+        case _ => None
+      }
+    }
+    def `{`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensLeftBrace.get, S.`{`)
+    }
+    def tokensRightBrace: Option[RightBrace] = {
+      tree.args match {
+        case List(b: Block) => 
+          if(b.stats.nonEmpty) Some(b.findAfter[RightBrace](_.stats.last).get)
+          else Some(b.find[RightBrace].get)
+        case _ => None
+      }
+    }
+    def `}`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensRightBrace.get, S.`}`)
+    }
   }
 
   implicit class XtensionTermApplyTypeSyntax(private val tree: ApplyType)
@@ -39,7 +141,13 @@ object SyntaxTokensTerm {
   implicit class XtensionTermBlockSyntax(private val tree: Block)
       extends AnyVal {
     def tokensLeftBrace: LeftBrace = blockStartBrace(tree)
+    def `{`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensLeftBrace, S.`{`)
+    }
     def tokensRightBrace: RightBrace = blockEndBrace(tree)(_.stats)
+    def `}`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensRightBrace, S.`}`)
+    }
   }
 
   implicit class XtensionTermDoSyntax(private val tree: Do) extends AnyVal {
@@ -68,6 +176,9 @@ object SyntaxTokensTerm {
       extends AnyVal {
     def tokensRightArrow: RightArrow =
       tree.findAfter[RightArrow](_.params.last).get
+    def `=>`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensRightArrow, S.`=>`)
+    }
   }
 
   implicit class XtensionTermIfSyntax(private val tree: If) extends AnyVal {
@@ -87,7 +198,13 @@ object SyntaxTokensTerm {
   implicit class XtensionTermPartialFunctionSyntax(val tree: PartialFunction)
       extends AnyVal {
     def tokensLeftBrace: LeftBrace = blockStartBrace(tree)
+    def `{`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensLeftBrace, S.`{`)
+    }
     def tokensRightBrace: RightBrace = blockEndBrace(tree)(_.cases)
+    def `}`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensRightBrace, S.`}`)
+    }
   }
 
   implicit class XtensionTermMatchSyntax(private val tree: Match)

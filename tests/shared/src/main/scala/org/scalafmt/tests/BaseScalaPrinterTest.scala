@@ -188,7 +188,7 @@ abstract class BaseScalaPrinterTest extends DiffSuite {
           TreePrinter.getRoot(formattedCode, options)
         } catch {
           case NonFatal(e) => {
-            throw new Exception("formattedCode: \n" + formattedCode, e)
+            throw new Exception("formatted code does not parse: \n\n" + formattedCode + "\n\n\n")
           }
         }
 

@@ -20,6 +20,13 @@ object PreserveCommentsTest extends PropertyTest("comments") {
       originalComments: String,
       formattedComments: String
   ): PropertyResult = {
+
+    println(originalComments)
+    println("---")
+    println(formattedComments)
+    val diff = unified(relativePath, originalComments, formattedComments)
+    println(diff)
+
     if (originalComments != formattedComments) {
       val maxSizeForDiff = 1000
       if (originalComments.size < maxSizeForDiff && formattedComments.size < maxSizeForDiff) {

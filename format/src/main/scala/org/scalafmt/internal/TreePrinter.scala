@@ -221,7 +221,7 @@ class TreePrinter private ()(implicit val trivia: AssociatedTrivias)
               case _ => dBlock(t.stats)
             }
           case t: Term.PartialFunction =>
-            dBlock(t.cases)
+            dBlock(t.`{`, t.cases, t.`}`)
           case t: Term.Function =>
             val dbody = (line + print(t.body)).nested(2).grouped
             dParams(t.params, forceParens = true) + space + `=>` + dbody
@@ -276,28 +276,29 @@ class TreePrinter private ()(implicit val trivia: AssociatedTrivias)
             print(t.op) + group.wrap1(PrefixArg(t.arg), print(t.arg))
           case t: Term.Apply =>
             val dfun = SimpleExpr1.wrap(t.fun)
-            val doc =
-              t.args match {
-                case LambdaArg(arg) =>
-                  dfun + space + arg.grouped
-                case Term.Block(stats) :: Nil =>
-                  dfun + space + dBlock(stats)
-                case _ =>
-                  dApplyParen(dfun, t.args)
-              }
-            trivia.wrapTrailing(t, doc)
+            t.args match {
+              case LambdaArg(arg) =>
+                dfun + space + t.`(` + arg.grouped + t.`)`
+              case Term.Block(stats) :: Nil =>
+                dfun + space + t.`(` + dBlock(t.`{`, stats, t.`}`) + t.`)`
+              case _ =>
+                dApplyParen(dfun, t.`(`, t.args, t.`)`)
+            }
           case t: Term.ApplyType =>
             dApplyBracket(SimpleExpr1.wrap(t.fun), t.targs)
           case t: Term.ApplyInfix =>
             val group = InfixExpr(t.op.value)
             val dlhs = group.wrap(t.lhs, Side.Left)
             val dargs = t.args match {
-              case Lit.Unit() :: Nil => `(` + `(` + `)` + `)`
+              case Lit.Unit() :: Nil => t.`(` + `(` + `)` + t.`)`
               // NOTE(olafur) InfixExpr.wrap() will not wrap tuples here.
               // This is a bug in Scalameta.syntax
-              case (_: Term.Tuple) :: Nil => dArgs(t.args)
-              case arg :: Nil => group.wrap(arg, Side.Right)
-              case args => dArgs(args)
+              case (_: Term.Tuple) :: Nil => 
+                dArgs(t.`(`, t.args, t.`)`)
+              case arg :: Nil => 
+                group.wrap(t.`(`, arg, t.`)`, Side.Right)
+              case args => 
+                dArgs(t.`(`, args, t.`)`)
             }
             val dlhsHasNewline = dlhs.flatten.isEmpty
 

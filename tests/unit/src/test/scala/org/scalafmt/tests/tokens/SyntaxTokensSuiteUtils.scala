@@ -62,7 +62,12 @@ abstract class SyntaxTokensSuiteUtils extends FunSuite {
   def checkNone[T <: Tree](f: T => Option[Token])(source: String): Unit = {
     val tree = source.parse[Stat].get.asInstanceOf[T]
     test(source) {
-      assert(f(tree).isEmpty)
+      f(tree) match {
+        case Some(token) => 
+          val out = fansi.Str(source).overlay(fansi.Back.Blue, token.pos.start, token.pos.end)
+          throw new Exception(out.toString)
+        case _ => ()
+      }
     }
   }
 

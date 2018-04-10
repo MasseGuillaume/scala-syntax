@@ -39,6 +39,9 @@ object SyntaxTokensUtils {
     def find[T <: Token](implicit ev: Classifier[Token, T]): Option[T] = {
       find[T](tree.tokens)(ev)
     }
+    def findLast[T <: Token](implicit ev: Classifier[Token, T]): Option[T] = {
+      tree.tokens.reverse.find(_.is[T]).map(_.asInstanceOf[T])
+    }
     def findAfter[T <: Token](
         p: A => Tree
     )(implicit ev: Classifier[Token, T]): Option[T] = {
@@ -63,15 +66,15 @@ object SyntaxTokensUtils {
     )(implicit ev: Classifier[Token, T]): Option[T] = {
       between(afterP, beforeP).flatMap(tokens => find[T](tokens)(ev))
     }
-    private def after(p: A => Tree, tokens: Tokens): Option[Tokens] = {
+    def after(p: A => Tree, tokens: Tokens): Option[Tokens] = {
       val end = p(tree).tokens.last
       tokens.binarySearch(end).map(tokens.drop).map(_.drop(1))
     }
-    private def before(p: A => Tree, tokens: Tokens): Option[Tokens] = {
+    def before(p: A => Tree, tokens: Tokens): Option[Tokens] = {
       val end = p(tree).tokens.head
       tokens.binarySearch(end).map(tokens.take)
     }
-    private def between(
+    def between(
         afterP: A => Tree,
         beforeP: A => Tree
     ): Option[Tokens] = {

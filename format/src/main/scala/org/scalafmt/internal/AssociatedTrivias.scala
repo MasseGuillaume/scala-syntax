@@ -98,13 +98,12 @@ final case class AssociatedTrivias(
       }
     }
   }
-
   private def wrap(
       leadings: Option[Seq[Token]],
       doc: Doc,
       trailings: Option[Seq[Token]],
       isSeparator: Boolean
-  ): Doc = {
+  ): Doc = { 
     val leading =
       toDoc(
         leadings,
