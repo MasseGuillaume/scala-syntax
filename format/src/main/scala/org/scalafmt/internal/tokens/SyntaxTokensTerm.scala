@@ -141,6 +141,10 @@ object SyntaxTokensTerm {
   implicit class XtensionTermSelectSyntax(private val tree: Select)
       extends AnyVal {
     def tokensDot: Dot = tree.findAfter[Dot](_.qual).get
+
+    def `.`(implicit trivia: AssociatedTrivias): Doc = {
+      trivia.wrap(tree, tokensDot, S.`.`)
+    }    
   }
 
   implicit class XtensionTermSuperSyntax(private val tree: Super)

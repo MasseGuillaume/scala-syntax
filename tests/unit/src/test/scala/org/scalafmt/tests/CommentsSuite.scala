@@ -34,6 +34,7 @@ object CommentsSuite extends BaseScalaPrinterTest {
 
   // meta.Term
   check("a/* L */./* T *//* L */this/* T */") // Term.This
+  check("a/* L */./* T */b")                  // Term.Select
 
   // meta.Mod
   // TODO: trailing
