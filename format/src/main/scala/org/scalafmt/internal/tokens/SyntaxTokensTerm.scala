@@ -67,45 +67,30 @@ object SyntaxTokensTerm {
       tokensLeftParen.map(lp => trivia.wrap(tree, lp, S.`(`)).getOrElse(empty)
     }
 
-    // given: a op (f)
-    // args.head.token
-    // obtained: (f)
-    // expected: f
-    // given: a op (b, c)
-    // is correct
-    // https://github.com/scalameta/scalameta/issues/1083#issuecomment-374530497
     def tokensLeftParen: Option[LeftParen] = {
-      tree.args match {
-        case List(name: Term.Name) => 
-          name.find[LeftParen]
-        case _ :: _ =>
-          // x f (g(y)) // T
-          val tt = tree.after(_.op, tree.tokens).get
-          println(tt)
-          println(tree.args.head.tokens)
-          println(tree.before(_.args.head, tt))
-
-
-          tree.findBetween[LeftParen](_.op, _.args.head)
-        case _ => 
-          println("3")
-          tree.findAfter[LeftParen](_.op)
-      }
+      if (tree.args.nonEmpty) tree.findBetween[LeftParen](_.op, _.args.head)
+      else tree.findAfter[LeftParen](_.op)
     }
 
     def `)`(implicit trivia: AssociatedTrivias): Doc = {
       tokensRightParen.map(rp => trivia.wrap(tree, rp, S.`)`)).getOrElse(empty)
     }
-    def tokensRightParen: Option[RightParen] =
-      tree.args match {
-        case List(name: Term.Name) => name.findLast[RightParen]
-        case _ :: _ => tree.findAfter[RightParen](_.args.last)
-        case _ => tree.findAfter[RightParen](_.op)
-      }
+    def tokensRightParen: Option[RightParen] = {
+      import org.scalafmt.internal.TokenOps._
+      println(tree.tokens.toList.map(_.showClass))
+
+      val tt = tree.after(_.args.last, tree.tokens).get
+      println(tt)
+
+      if (tree.args.nonEmpty) tree.findAfter[RightParen](_.args.last)
+      else tree.findAfter[RightParen](_.op)
+    }
 
     def tokensLeftBrace: Option[LeftBrace] = {
       tree.args match {
-        case List(b: Block) => Some(b.find[LeftBrace].get)
+        case List(b: Block) => 
+          if(b.stats.nonEmpty) Some(b.findAfter[LeftBrace](_.stats.head).get)
+          else Some(b.find[LeftBrace].get)
         case _ => None
       }
     }

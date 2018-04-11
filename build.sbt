@@ -8,7 +8,7 @@ lazy val Paiges = RootProject(
 )
 lazy val paiges = ProjectRef(Paiges.build, "coreJVM")
 
-lazy val metaV = "3.2.0"
+lazy val metaV = "3.7.0-28-07f5dc53"
 
 lazy val format = project
   .settings(

@@ -16,6 +16,8 @@ object SyntaxTokensTermSuite extends SyntaxTokensSuiteUtils {
   checkNone[Term.ApplyInfix](_.tokensLeftParen)("x f y")
   checkNone[Term.ApplyInfix](_.tokensLeftParen)("x f g(y)")
   checkSome[Term.ApplyInfix](_.tokensLeftParen)("a f→(←b)")
+
+  
   // checkSome[Term.ApplyInfix](_.tokensRightParen)("a f(b→)←")
   // checkSome[Term.ApplyInfix](_.tokensLeftBrace)("a f →{← b }")
   // checkSome[Term.ApplyInfix](_.tokensRightBrace)("a f { b →}←")
