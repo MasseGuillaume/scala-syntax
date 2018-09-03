@@ -2,6 +2,7 @@ package org.scalafmt.internal
 
 import org.scalafmt.internal.ScalaToken._
 import org.scalafmt.internal.TokenOps._
+import org.scalafmt.internal.tokens.SyntaxTokensTerm._
 
 import scala.meta.internal.paiges.Doc
 import scala.meta.internal.paiges.Doc._
@@ -51,12 +52,18 @@ trait TreeDocOps extends SyntacticGroupOps {
     dApplyBracket(empty, targs)
 
   def dArgs(args: List[Tree]): Doc =
-    dApplyParen(empty, args)
+    dArgs(`(`, args, `)`)
+
+  def dArgs(`(`: Doc, args: List[Tree], `)`: Doc): Doc =
+    dApplyParen(empty, `(`, args, `)`)
 
   def dArgss(argss: List[List[Term]]): Doc =
     joined(argss.map(dArgs))
 
   def dApplyParen(fun: Doc, args: List[Tree]): Doc =
+    dApply(fun, args, `(`, `)`)
+
+  def dApplyParen(fun: Doc, `(`: Doc, args: List[Tree], `)`: Doc): Doc =
     dApply(fun, args, `(`, `)`)
 
   def dApplyBracket(fun: Doc, args: List[Tree]): Doc =
@@ -85,7 +92,13 @@ trait TreeDocOps extends SyntacticGroupOps {
   def dBlock(stats: List[Tree]): Doc =
     dBlockI(stats).grouped
 
-  def dBlockI(stats: List[Tree]): Doc = {
+  def dBlock(`{`: Doc, stats: List[Tree], `}`: Doc): Doc =
+    dBlockI(`{`, stats, `}`).grouped
+
+  def dBlockI(stats: List[Tree]): Doc =
+    dBlockI(`{`, stats, `}`)
+
+  def dBlockI(`{`: Doc, stats: List[Tree], `}`: Doc): Doc = {
     val hasTrailingComment =
       stats.lastOption.map(trivia.hasTrailingComment).getOrElse(false)
 
@@ -340,7 +353,7 @@ trait TreeDocOps extends SyntacticGroupOps {
           (accum :+ f.params, f.body)
       }
 
-    def dFunction(f: Term.Function): Doc = {
+    def dFunction(b: Term.Block, f: Term.Function): Doc = {
       val (paramss, body) = getParamss(f)
       val dbody = body match {
         case Term.Block(stats) => dStats(stats)
@@ -348,7 +361,7 @@ trait TreeDocOps extends SyntacticGroupOps {
       }
       val dparamss = paramss.foldLeft(empty) {
         case (accum, params) =>
-          accum + line + dParams(params, forceParens = false) + space + `=>`
+          accum + line + dParams(params, forceParens = false) + space + f.`=>`
       }
 
       val function =
@@ -364,10 +377,10 @@ trait TreeDocOps extends SyntacticGroupOps {
       args match {
         case (arg: Term.PartialFunction) :: Nil =>
           Some(print(arg))
-        case (arg @ Term.Function(_, Term.Block(_ :: _ :: _))) :: Nil =>
-          Some(dFunction(arg))
-        case (Term.Block((f: Term.Function) :: Nil)) :: Nil =>
-          Some(dFunction(f))
+        case (arg @ Term.Function(_, b @ Term.Block(_ :: _ :: _))) :: Nil =>
+          Some(dFunction(b, arg))
+        case (b @ Term.Block((f: Term.Function) :: Nil)) :: Nil =>
+          Some(dFunction(b, f))
         case _ =>
           None
       }

@@ -232,7 +232,7 @@ object CoverageSuite extends BaseScalaPrinterTest {
   ) // Ctor.Secondary
 
   // meta.Mod
-  check("@tailrec def f = 1")       // Mod.Annotation
+  check("@tailrec def f = 1")       // Mod.Annot
   check("private[foo] val a = 1")   // Mod.Private
   check("protected[foo] val a = 1") // Mod.Protected
   check("implicit val a = 1")       // Mod.Implicit
