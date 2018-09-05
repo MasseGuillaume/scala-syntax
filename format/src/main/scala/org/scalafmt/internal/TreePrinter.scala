@@ -3,6 +3,8 @@ package org.scalafmt.internal
 import org.scalafmt.Options
 import org.scalafmt.internal.ScalaToken._
 
+import org.scalafmt.internal.tokens.SyntaxTokensTerm._
+
 import scala.meta.internal.paiges.Doc
 import scala.meta.internal.paiges.Doc._
 
@@ -218,7 +220,7 @@ class TreePrinter private ()(implicit val trivia: AssociatedTrivias)
             val dbody = (line + print(t.body)).nested(2).grouped
             dParams(t.params, forceParens = true) + space + `=>` + dbody
           case t: Term.Tuple =>
-            t.args.mkDoc(`(`, List(`,` + space), `)`)
+            t.args.mkDoc(`(`, t.`,`, `)`)
 
           case t: Term.Match =>
             PostfixExpr.wrap(t.expr) + space + `match` + space + dBlock(t.cases)

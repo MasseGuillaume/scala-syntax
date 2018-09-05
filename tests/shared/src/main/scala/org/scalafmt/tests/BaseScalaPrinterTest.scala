@@ -14,6 +14,8 @@ import org.scalafmt.Options
 import org.scalameta.logger
 import org.scalafmt.internal.TreePrinter
 
+import java.nio.charset.StandardCharsets
+
 import scala.util.control.NonFatal
 
 abstract class BaseScalaPrinterTest extends DiffSuite {
@@ -230,6 +232,27 @@ abstract class BaseScalaPrinterTest extends DiffSuite {
 
   def checkTreeSource(root: Tree): Unit = {
     val testName = root.syntax
+    checkTreeSourceBase(root, testName)
+  }
+
+  def resource(path: String): Input = 
+    Input.Stream(
+      this.getClass.getClassLoader.getResourceAsStream(path),
+      StandardCharsets.UTF_8
+    )
+
+  def checkResource(path: String): Unit = {
+    test(path) {
+      val input = resource(path)
+      val root = input.parse[Source].get
+
+      val options = defaultOptions
+      val obtained = printTree(root, options)
+      assertNoDiff(obtained, input.text)
+    }
+  }
+
+  def checkTreeSourceBase(root: Tree, testName: String): Unit = {
     val options = defaultOptions.copy(
       parser = Parse.parseSource,
       dialect = dialects.Scala212
