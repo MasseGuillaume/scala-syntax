@@ -248,7 +248,12 @@ abstract class BaseScalaPrinterTest extends DiffSuite {
 
       val options = defaultOptions
       val obtained = printTree(root, options)
-      assertNoDiff(obtained, input.text)
+      val diff = unified(path, obtained, input.text)
+      if (diff.nonEmpty) {
+        println(logger.revealWhitespace(obtained))
+        println(logger.revealWhitespace(input.text))
+        assert(false)
+      }
     }
   }
 
@@ -306,6 +311,8 @@ abstract class BaseScalaPrinterTest extends DiffSuite {
   }
 
   def check(tree: Tree, expected: String): Unit = {
-    assertNoDiff(printTree(tree), expected)
+    test(expected) {
+      assertNoDiff(printTree(tree), expected)
+    }
   }
 }

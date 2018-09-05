@@ -98,10 +98,11 @@ trait TreeDocOps extends SyntacticGroupOps {
     dBlockI(`{`, stats, `}`)
 
   def dBlockI(`{`: Doc, stats: List[Tree], `}`: Doc): Doc = {
+
     val hasTrailingComment =
       stats.lastOption.map(trivia.hasTrailingComment).getOrElse(false)
 
-    val nl =
+    val nl = empty
       if (hasTrailingComment) empty
       else line
 
