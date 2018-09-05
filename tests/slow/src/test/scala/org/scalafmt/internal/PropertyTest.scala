@@ -16,13 +16,9 @@ import scala.meta.testkit.Corpus
 import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
 
-sealed trait PropertyResult
-case object Success extends PropertyResult
-case class Failure(explanation: String) extends PropertyResult
-
 abstract class PropertyTest(name: String) extends BaseScalaPrinterTest {
 
-  def check(file: Input.File, relativePath: String): PropertyResult
+  def check(input: Input, relativePath: String): PropertyResult
 
   private val failed = TrieMap.empty[File, Boolean]
   private val regressions = TrieMap.empty[File, Boolean]

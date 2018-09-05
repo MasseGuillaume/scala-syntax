@@ -14,10 +14,11 @@ import org.scalafmt.Options
 import org.scalameta.logger
 import org.scalafmt.internal.TreePrinter
 
+import java.nio.charset.Charset
 import scala.util.control.NonFatal
 
 abstract class BaseScalaPrinterTest extends DiffSuite {
-
+  
   val defaultOptions: InternalOptions = InternalOptions(100).copy(
     dialect = dialects.Sbt1.copy(
       allowTypeLambdas = true,
@@ -224,12 +225,18 @@ abstract class BaseScalaPrinterTest extends DiffSuite {
     }
   }
 
-  def check(input: Input): Unit = {
-    checkTreeSource(input.parse[Source].get)
+  def checkFromResources(path: String): Unit = {
+    val input = Input.Stream(getClass.getClassLoader.getResourceAsStream(path), Charset.forName("UTF-8"))
+    val root = input.parse[Source].get
+    checkTreeSource(root, path)
   }
 
-  def checkTreeSource(root: Tree): Unit = {
-    val testName = root.syntax
+  def check(input: Input): Unit = {
+    val root = input.parse[Source].get
+    checkTreeSource(root, root.syntax)
+  }
+
+  def checkTreeSource(root: Tree, testName: String): Unit = {
     val options = defaultOptions.copy(
       parser = Parse.parseSource,
       dialect = dialects.Scala212
@@ -237,6 +244,7 @@ abstract class BaseScalaPrinterTest extends DiffSuite {
 
     test(testName) {
       val obtained = printTree(root, options)
+      println(obtained)
       val root2 = TreePrinter.getRoot(obtained, options).children.head
       isSameTree(testName, root, root2) match {
         case Left(astDiff) =>

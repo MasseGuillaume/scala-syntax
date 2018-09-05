@@ -174,7 +174,7 @@ object CoverageSuite extends BaseScalaPrinterTest {
      |}
      |class B""".stripMargin
   )
-  checkTreeSource(Pkg(Term.Name("a"), List())) // no parent
+  checkTreeSource(Pkg(Term.Name("a"), List()), "no parent")
   checkSource("package object a") // Pkg.Object
 
   // meta.{Import, Importee, Importer}
