@@ -206,17 +206,74 @@ object SyntaxTokens {
       trivia.addLeading(tree, tokensRightBrace, S.`}`)
   }
 
+  implicit class XtensionTermApplyInfixSyntax(private val tree: Term.ApplyInfix)
+      extends AnyVal {
+
+    // /* LHS */
+
+    // def tokensLeftParenLhs: Option[LeftParen] = 
+    //   None
+
+    // def `( lhs`(implicit trivia: AssociatedTrivias): Doc =
+    //   trivia.addTrailingOpt(tree, tokensLeftParenLhs, S.`(`)
+
+    // def tokensRightParenLhs: Option[RightParen] = 
+    //   None
+
+    // def `) lhs`(implicit trivia: AssociatedTrivias): Doc =
+    //   trivia.addLeadingOpt(tree, tokensRightParenLhs, S.`)`)
+
+    /* RHS */
+
+    def tokensLeftParenRhs: Option[LeftParen] = {
+      if (tree.hasTokens) {
+        val start =
+          if (tree.targs.nonEmpty) tree.targs.last.tokens.last
+          else tree.op.tokens.last
+
+        val end =
+          if (tree.args.nonEmpty) tree.args.last.tokens.last
+          else tree.tokens.last
+
+        tree.tokens.slice2(start, end).collectFirst{ case x: LeftParen => x }
+
+      } else None
+    }
+      
+
+    def `( rhs`(implicit trivia: AssociatedTrivias): Option[Doc] = {
+      tokensLeftParenRhs.map(lp => trivia.addTrailing(tree, lp, S.`(`))
+    }
+      
+    def tokensRightParenRhs: Option[RightParen] = {
+      if (tree.hasTokens) {
+        val start = 
+          if (tree.args.nonEmpty) tree.args.last.tokens.last
+          else if (tree.targs.nonEmpty) tree.targs.last.tokens.last
+          else tree.op.tokens.last
+
+        val end = tree.tokens.last
+
+        val tokens = tree.tokens.slice2(start, end, includeTo = true)
+
+        tokens.collectFirst{ case x: RightParen => x }
+
+      } else None
+    }
+
+    def `) rhs`(implicit trivia: AssociatedTrivias): Option[Doc] =
+      tokensRightParenRhs.map(rp => trivia.addLeading(tree, rp, S.`)`))
+  }
+
   implicit class XtensionTermBlockSyntax(private val tree: Term.Block)
       extends AnyVal {
     def tokensLeftBrace: Option[LeftBrace] = blockStartBrace(tree)
     def `{`(implicit trivia: AssociatedTrivias): Doc =
       trivia.wrapOpt(tree, tokensLeftBrace, S.`{`)
-    // trivia.addTrailingOpt(tree, tokensLeftBrace, S.`{`)
 
     def tokensRightBrace: Option[RightBrace] = blockEndBrace(tree)(_.stats)
     def `}`(implicit trivia: AssociatedTrivias): Doc =
       trivia.wrapOpt(tree, tokensRightBrace, S.`}`)
-    // trivia.addLeadingOpt(tree, tokensRightBrace, S.`}`)
   }
 
   implicit class XtensionTermPartialFunctionSyntax(

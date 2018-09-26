@@ -20,7 +20,7 @@ trait SyntacticGroupOps extends WithPrinter {
     def wrap(`(`: Doc, tree: Tree, `)`: Doc, side: Side): Doc = {
       wrap(Some(`(`), tree, Some(`)`), side)
     }
-    private def wrap(
+    def wrap(
         `(`: Option[Doc],
         tree: Tree,
         `)`: Option[Doc],

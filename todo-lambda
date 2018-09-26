@@ -1,0 +1,17 @@
+a op { x =>
+  s1
+  s2
+  // T 2
+}
+
+
+a op (
+  // T
+  b
+)
+
+a op ( 
+  // T
+  if (p) t
+  else f
+)

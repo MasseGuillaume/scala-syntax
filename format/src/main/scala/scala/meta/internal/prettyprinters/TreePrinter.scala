@@ -298,9 +298,9 @@ class TreePrinter private ()(implicit val trivia: AssociatedTrivias)
               case (_: Term.Tuple) :: Nil =>
                 dArgs(`(`, t.args, Nil, `)`)
               case arg :: Nil =>
-                group.wrap(arg, Side.Right)
+                group.wrap(t.`( rhs`, arg, t.`) rhs`, Side.Right)
               case args =>
-                dArgs(`(`, args, Nil, `)`)
+                dArgs(t.`( rhs`.getOrElse(`(`), args, Nil, t.`) rhs`.getOrElse(`)`))
             }
             val dlhsHasNewline = dlhs.flatten.isEmpty
 
